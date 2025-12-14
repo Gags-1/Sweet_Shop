@@ -30,8 +30,8 @@ def test_create_sweet():
     
     # Try to create a sweet
     sweet_data = {
-        "name": "Chocolate Bar",
-        "category": "Chocolate",
+        "name": "Something",
+        "category": "something",
         "price": 2.99,
         "quantity": 50
     }

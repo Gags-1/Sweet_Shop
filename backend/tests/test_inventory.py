@@ -75,8 +75,8 @@ def test_restock_sweet():
     login_response = client.post(
         "/api/auth/login",
         data={
-            "username": "gagan@example.com",
-            "password": "string"
+            "username": "johndoe@john.com",
+            "password": "12345"
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )

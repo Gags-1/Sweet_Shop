@@ -5,8 +5,8 @@ client = TestClient(app)
 def test_register_user():
     """Test user registration - This will FAIL initially"""
     user_data = {
-        "username": "testuser2",
-        "email": "test@example2.com", 
+        "username": "testuser",
+        "email": "test@example.com", 
         "password": "testpass123"
     }
     
@@ -14,7 +14,7 @@ def test_register_user():
     
     assert response.status_code == 200
     assert "id" in response.json()
-    assert response.json()["email"] == "test@example2.com"
+    assert response.json()["email"] == "test@example.com"
 
 def test_login_user():
     # First register a user

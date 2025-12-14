@@ -113,3 +113,17 @@ def delete_sweet(
     db.commit()
     
     return {"message": "Sweet deleted successfully"}
+
+@router.get("/{sweet_id}", response_model=SweetResponse)
+def get_sweet(
+    sweet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    sweet = db.query(Sweet).filter(Sweet.id == sweet_id).first()
+    if not sweet:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sweet not found"
+        )
+    return sweet

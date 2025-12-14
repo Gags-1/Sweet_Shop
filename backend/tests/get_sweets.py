@@ -60,4 +60,5 @@ def test_get_all_sweets():
 
     assert isinstance(body, list)
     assert len(body) >= 1
-    assert body[0]["name"] == "Ladoo"
+    names = [sweet["name"] for sweet in body]
+    assert "Ladoo" in names

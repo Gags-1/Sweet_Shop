@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database import Base, engine
 from . import models
-from .routers import auth,sweets
+from .routers import auth,sweets,inventory
 
 try:
     Base.metadata.create_all(bind=engine)
@@ -17,3 +17,4 @@ def message():
 
 app.include_router(auth.router)
 app.include_router(sweets.router)
+app.include_router(inventory.router)

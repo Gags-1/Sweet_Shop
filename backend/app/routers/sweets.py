@@ -93,3 +93,23 @@ def search_sweets(
         query = query.filter(Sweet.price <= max_price)
     
     return query.all()
+
+
+@router.delete("/{sweet_id}")
+def delete_sweet(
+    sweet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_sweet = db.query(Sweet).filter(Sweet.id == sweet_id).first()
+    
+    if not db_sweet:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sweet not found"
+        )
+    
+    db.delete(db_sweet)
+    db.commit()
+    
+    return {"message": "Sweet deleted successfully"}

@@ -1,33 +1,39 @@
 from fastapi.testclient import TestClient
 from app.main import app
+from app.database import SessionLocal
+from app.models import User, Sweet
+import uuid
 
 client = TestClient(app)
 
 def test_delete_sweet():
-    # Register user
-    user_data = {
-        "username": "deleteuser",
-        "email": "delete@example.com",
-        "password": "deletepass123"
-    }
-    client.post("/api/auth/register", json=user_data)
+    # Ensure admin exists and is admin
+    db = SessionLocal()
+    admin_user = db.query(User).filter(User.email == "gagan@example.com").first()
+    assert admin_user is not None
+    admin_user.is_admin = 1
+    db.commit()
+    db.close()
 
-    # Login
+    # Login as admin (OAuth2 form)
     login_response = client.post(
         "/api/auth/login",
         data={
-            "username": "delete@example.com",
-            "password": "deletepass123"
+            "username": "gagan@example.com",
+            "password": "string"
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    token = login_response.json()["access_token"]
 
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
     auth_headers = {"Authorization": f"Bearer {token}"}
 
-    # Create a sweet
+    # Create a UNIQUE sweet (avoid duplicates)
+    unique_name = f"Gulab Jamun {uuid.uuid4()}"
+
     sweet_data = {
-        "name": "Gulab Jamun",
+        "name": unique_name,
         "category": "Indian",
         "price": 15.0,
         "quantity": 20
@@ -39,9 +45,10 @@ def test_delete_sweet():
         headers=auth_headers,
     )
 
+    assert create_response.status_code == 200
     sweet_id = create_response.json()["id"]
 
-    # Delete the sweet
+    # Delete the sweet (ADMIN ONLY)
     delete_response = client.delete(
         f"/api/sweets/{sweet_id}",
         headers=auth_headers,
@@ -50,9 +57,9 @@ def test_delete_sweet():
     assert delete_response.status_code == 200
     assert delete_response.json()["message"] == "Sweet deleted successfully"
 
-    # Verify deletion
-    get_response = client.get(
-        f"/api/sweets/{sweet_id}",
-        headers=auth_headers,
-    )
-    assert get_response.status_code == 404
+    # Verify deletion directly from DB (correct way)
+    db = SessionLocal()
+    deleted_sweet = db.query(Sweet).filter(Sweet.id == sweet_id).first()
+    db.close()
+
+    assert deleted_sweet is None

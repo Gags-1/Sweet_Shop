@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
@@ -32,3 +33,9 @@ class SweetResponse(SweetBase):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+class RestockRequest(BaseModel):
+    quantity: int
+
+class PurchaseRequest(BaseModel):
+    quantity: int

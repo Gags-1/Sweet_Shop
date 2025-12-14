@@ -1,10 +1,14 @@
 from fastapi.testclient import TestClient
 from app.main import app
+from app.database import SessionLocal
+from app.models import User, Sweet
+import uuid
 
 client = TestClient(app)
 
+
 def test_purchase_sweet():
-    # Register user
+    # Register user (safe if already exists)
     user_data = {
         "username": "purchaseuser",
         "email": "purchase@example.com",
@@ -12,7 +16,7 @@ def test_purchase_sweet():
     }
     client.post("/api/auth/register", json=user_data)
 
-    # Login (OAuth2 form data)
+    # Login
     login_response = client.post(
         "/api/auth/login",
         data={
@@ -26,9 +30,11 @@ def test_purchase_sweet():
     token = login_response.json()["access_token"]
     auth_headers = {"Authorization": f"Bearer {token}"}
 
-    # Create sweet
+    # Create UNIQUE sweet
+    unique_name = f"Gummy Bears {uuid.uuid4()}"
+
     sweet_data = {
-        "name": "Gummy Bears",
+        "name": unique_name,
         "category": "Gummies",
         "price": 1.99,
         "quantity": 100
@@ -56,32 +62,21 @@ def test_purchase_sweet():
     assert response.json()["quantity"] == 95
 
 
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
-
-
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
-
 def test_restock_sweet():
-    # Register user
-    user_data = {
-        "username": "restockuser",
-        "email": "restock@example.com",
-        "password": "restockpass123"
-    }
-    client.post("/api/auth/register", json=user_data)
+    # Ensure admin exists and is admin
+    db = SessionLocal()
+    admin_user = db.query(User).filter(User.email == "gagan@example.com").first()
+    assert admin_user is not None
+    admin_user.is_admin = 1
+    db.commit()
+    db.close()
 
-    # Login (OAuth2 form data)
+    # Login as admin
     login_response = client.post(
         "/api/auth/login",
         data={
-            "username": "restock@example.com",
-            "password": "restockpass123"
+            "username": "gagan@example.com",
+            "password": "string"
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
@@ -90,9 +85,11 @@ def test_restock_sweet():
     token = login_response.json()["access_token"]
     auth_headers = {"Authorization": f"Bearer {token}"}
 
-    # Create sweet
+    # Create UNIQUE sweet
+    unique_name = f"Sour Patch {uuid.uuid4()}"
+
     sweet_data = {
-        "name": "Sour Patch",
+        "name": unique_name,
         "category": "Sour",
         "price": 2.49,
         "quantity": 20
@@ -117,4 +114,11 @@ def test_restock_sweet():
     )
 
     assert response.status_code == 200
-    assert response.json()["quantity"] == 50  # 20 + 30
+    assert response.json()["quantity"] == 50
+
+    # Verify in DB
+    db = SessionLocal()
+    updated_sweet = db.query(Sweet).filter(Sweet.id == sweet_id).first()
+    db.close()
+
+    assert updated_sweet.quantity == 50

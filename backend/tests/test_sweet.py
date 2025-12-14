@@ -14,13 +14,19 @@ def test_create_sweet():
     }
     client.post("/api/auth/register", json=user_data)
     
-    login_data = {
-        "username": "sweetuser",
-        "email": "sweet@example.com",
-        "password": "sweetpass123"
-    }
-    login_response = client.post("/api/auth/login", json=login_data)
-    token = login_response.json()["access_token"]
+    # login_data = {
+    #     "username": "sweet@example.com",
+    #     "password": "sweetpass123"
+    # }
+    response = client.post(
+        "/api/auth/login",
+        data={
+            "username": "sweet@example.com", 
+            "password": "sweetpass123"
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    token = response.json()["access_token"]
     
     # Try to create a sweet
     sweet_data = {
@@ -31,9 +37,9 @@ def test_create_sweet():
     }
     
     response = client.post(
-        "/api/sweets",
+        "/api/sweets/create",
         json=sweet_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
     
     # These will FAIL initially

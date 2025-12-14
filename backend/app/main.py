@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database import Base, engine
 from . import models
-from .routers import auth
+from .routers import auth,sweets
 
 try:
     Base.metadata.create_all(bind=engine)
@@ -16,3 +16,4 @@ def message():
     return {"message": "API RUNNING"}
 
 app.include_router(auth.router)
+app.include_router(sweets.router)
